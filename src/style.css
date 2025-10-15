@@ -1,0 +1,61 @@
+:root {
+  --font-heading: "Grandstander", cursive;
+  --font-body: "Figtree", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --color-cherry-red: #ed4c4c;
+  --color-peach: #faa09a;
+  --color-light-peach: #ffd0cd;
+  --color-white: #ffffff;
+  --color-text: #2a2a2a;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background-color: var(--color-light-peach);
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  margin: 0;
+}
+
+a {
+  color: var(--color-cherry-red);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-peach);
+}
+
+button {
+  font-family: var(--font-body);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+#app {
+  min-height: 100vh;
+}
