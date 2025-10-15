@@ -1,126 +1,101 @@
-# HeySalad® Cloud Print Frontend
+# HeySalad® Cloud Kitchen Frontend
 
-A branded Vue 3 + Vite + TypeScript interface for monitoring HeySalad printers, managing user access, and bridging real-time updates from a Raspberry Pi via Socket.IO.
+Vue 3 + Vite + TypeScript control panel for the HeySalad Cloud Kitchen network. Monitor Raspberry Pi “agents”, watch camera feeds, manage thermal printers, and sync orders, staff, and compliance data stored in Firebase.
 
-## Highlights
-- HeySalad-branded UI with responsive layout and Google Fonts.
-- Firebase Authentication with sign-up/login flow and session guard.
-- Admin panel (restricted to `@heysalad.com` accounts) for inviting new team members.
-- Socket.IO bridge to communicate with the Raspberry Pi printer controller.
-- Upload interface for sending print-ready files (PDF or images) to the bridge.
-- Deployment-ready configuration for Firebase Hosting.
+## What’s Inside
+- Brand-aligned layout using Cherry Red `#ed4c4c`, Peach `#faa09a`, Light Peach `#ffd0cd`, and Grandstander / Figtree typefaces.
+- Modular routes for **Dashboard, Cameras, Printers, Calls, Orders, Logistics, Staff, Customers, Compliance,** and **Admin**.
+- Shared status banner with live readiness indicators.
+- Firebase Auth, Firestore, and Storage bootstrap in `src/firebase.ts`.
+- Socket.IO placeholder hooks for Raspberry Pi agent telemetry (`VITE_SOCKET_URL`).
 
-## Prerequisites
-- Node.js 18+ and npm.
-- Firebase project with Authentication enabled.
-- Socket.IO server running on the Raspberry Pi (or reachable endpoint).
-- Firebase CLI (`npm install -g firebase-tools`) for deployment.
-
-## Getting Started
-
+## Quick Start
 ```bash
-git clone <repo-url>
-cd heysalad-cloud-printer-frontend
 npm install
+npm run dev
 ```
 
-### Environment Variables
-Create a `.env` file in the project root using the values from your Firebase project:
+Visit `http://localhost:5173` once the Vite dev server boots. Use Node.js `20.19.0+` or `22.12.0+` to satisfy Vite’s native bindings.
+
+## Environment Variables
+Create `.env` in the project root:
 
 ```ini
-# Firebase Configuration
 VITE_FIREBASE_API_KEY=your-api-key
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+VITE_FIREBASE_AUTH_DOMAIN=heysalad-cloud.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=heysalad-cloud
+VITE_FIREBASE_STORAGE_BUCKET=heysalad-cloud.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 VITE_FIREBASE_APP_ID=your-app-id
 VITE_FIREBASE_MEASUREMENT_ID=your-measurement-id
 
-# Socket.IO bridge (Raspberry Pi or printer gateway)
-VITE_SOCKET_URL=http://<rpi-ip-or-host>:4000
-
-# Optional API endpoints
-VITE_HEALTH_ENDPOINT=https://<bridge-or-api>/api/health
+# Socket.IO endpoint exposed by the Raspberry Pi agent
+VITE_SOCKET_URL=https://your-agent.ngrok-free.app
 ```
 
-> **Note:** Double-check `VITE_FIREBASE_PROJECT_ID` is spelled correctly; a typo will cause initialization errors.
+Restart `npm run dev` after editing environment values.
 
-### Development Server
+## Project Structure
+```
+src/
+ ├── App.vue                # Layout with NavBar + StatusBanner
+ ├── main.ts                # Vue bootstrap + router
+ ├── router/index.ts        # Route definitions for each module
+ ├── firebase.ts            # Firebase Auth / Firestore / Storage init
+ ├── types/                 # Shared kitchen domain models
+ ├── data/                  # Mock data scaffolding for UI development
+ ├── components/            # Shared UI components
+ │    ├── AgentCard.vue
+ │    ├── NavBar.vue
+ │    └── StatusBanner.vue
+ └── views/                 # Feature pages
+      ├── Admin.vue
+      ├── Cameras.vue
+      ├── Calls.vue
+      ├── Compliance.vue
+      ├── Customers.vue
+      ├── Dashboard.vue
+      ├── Logistics.vue
+      ├── Orders.vue
+      ├── Printers.vue
+      └── Staff.vue
 
-```bash
-npm run dev
+### Domain Models
+- `KitchenAgent`, `KitchenOrder`, `CustomerProfile`, and more are defined in `src/types/kitchen.ts`.
+- Temporary UI data lives in `src/data/mockData.ts` and mirrors the Firestore collections (`orders`, `staff`, `customers`, `compliance`). Swap these with live queries when wiring Firebase.
 ```
 
-Visit http://localhost:5173 to use the app.
+## Firestore Collections (scaffold)
+| Collection | Fields |
+| ---------- | ------ |
+| `orders` | `id` (string), `customerId` (string), `status` (`pending` \| `processing` \| `completed`), `items` (array), `total` (number), `createdAt` (timestamp) |
+| `staff` | `id` (string), `name` (string), `role` (string), `active` (boolean) |
+| `customers` | `id` (string), `name` (string), `email` (string), `rewardPoints` (number) |
+| `compliance` | `id` (string), `reportType` (string), `fileUrl` (string), `createdAt` (timestamp) |
 
-## Firebase Authentication Setup
-1. In the Firebase console, open **Build → Authentication → Get started**.
-2. Enable the **Email/Password** provider.
-3. Optionally add seed accounts via the **Users** tab or the built-in sign-up form.
-4. Add `http://localhost:5173` (and your production domain) to **Authentication → Settings → Authorized domains**.
+Extend `src/firebase.ts` with Firestore queries or composables as integrations go live.
 
-### Admin Access
-The admin panel is available to users with an email ending in `@heysalad.com`. Once signed in:
-
-1. Click **Manage users** in the dashboard header.
-2. Enter the teammate’s details. The form uses a secondary Firebase app instance, so your session stays active.
-3. Share the generated credentials with your teammate; they can sign in immediately and change their password.
-
-## Socket.IO Bridge
-Set up a Socket.IO server on the Raspberry Pi that listens for the following events:
-
-- `printer:ping` – sent from the UI to check connectivity.
-- `printer:status` – emit status updates back to the client (`{ status: "online" }`, etc.).
-- `printer:message` – general informational messages.
-- `printer:error` – error details to surface in the dashboard.
-
-Example (Node.js on the Pi):
-
-```ts
-import { Server } from "socket.io";
-
-const io = new Server(4000, { cors: { origin: "*" } });
-
-io.on("connection", (socket) => {
-  console.log("Client connected", socket.handshake.auth);
-
-  socket.emit("printer:status", { status: "Ready" });
-
-  socket.on("printer:ping", (payload) => {
-    console.log("Ping received", payload);
-    socket.emit("printer:message", { message: "Printer acknowledged ping." });
-  });
-});
-```
-
-Update `VITE_SOCKET_URL` to the correct host/port and restart `npm run dev` to reconnect.
-
-### Sending Print Jobs
-1. Ensure the socket bridge shows “Printer bridge connected” in the dashboard.
-2. Use **Send a print job** to upload a PDF or image (max 10 MB). The file is encoded client-side and streamed over Socket.IO to the Raspberry Pi.
-3. Watch the print log for confirmation events (`Print job accepted`, `Print job completed`, or any error messages emitted by the bridge).
+## Connecting Raspberry Pi Agents
+1. Deploy the agent backend with Socket.IO support (existing bridge).
+2. Expose the agent with HTTPS (e.g. `ngrok` or reverse proxy).
+3. Set `VITE_SOCKET_URL` to the agent URL.
+4. In the frontend, subscribe to socket events (e.g. `agent:status`, `camera:update`, `printer:job`) and update the shared status banner or module views.
 
 ## Deployment (Firebase Hosting)
-1. Authenticate: `firebase login`
-2. Ensure `firebase.json` and `.firebaserc` target the correct project.
-3. Build and deploy:
-
 ```bash
+firebase login
 npm run build
 firebase deploy --only hosting
 ```
 
-This runs the production build (`dist/`) and uploads it to Firebase Hosting.
+`firebase.json` targets the static build in `dist/` and rewrites all routes to `index.html` for SPA behaviour.
 
-## Additional Commands
-- `npm run build` – Type-check and bundle for production.
-- `npm run preview` – Preview the production build locally.
+## Developing Further
+- Replace placeholder data in each view with Firestore queries or REST calls.
+- Use Vue composables to share Socket.IO state (`/composables/useAgentSocket.ts` is a good future location).
+- Harden authentication by enforcing Firestore security rules aligned to staff roles.
 
 ## Troubleshooting
-- **Auth errors:** confirm all `VITE_FIREBASE_*` values and authorized domains.
-- **Admin panel hidden:** make sure the signed-in email ends with `@heysalad.com`.
-- **Socket disconnected:** verify `VITE_SOCKET_URL`, network access, and that the Pi server is running.
-- **Deployment issues:** run `firebase target:list` to confirm hosting target, and ensure you ran `npm run build` before deploying.
-
-Enjoy printing with HeySalad® Cloud Print!
+- **Native binding error:** remove `node_modules` & `package-lock.json`, install with a supported Node.js version, then retry.
+- **Auth issues:** confirm Firebase project IDs and add local origin to Firebase Auth authorised domains.
+- **Socket connection fails:** verify the agent URL is reachable over HTTPS and CORS allows the frontend origin.

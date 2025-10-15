@@ -1,5 +1,5 @@
 {
-  "name": "heysalad-cloud-printer-frontend",
+  "name": "heysalad-cloud-kitchen-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,9 +11,12 @@
   "dependencies": {
     "firebase": "^12.4.0",
     "socket.io-client": "^4.8.1",
-    "vue": "^3.5.22"
+    "vue": "^3.5.22",
+    "vue-router": "^4.6.0"
   },
   "devDependencies": {
+    "@iconify/json": "^2.2.238",
+    "@types/firebase": "^3.2.3",
     "@types/node": "^24.6.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
