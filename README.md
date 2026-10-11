@@ -99,3 +99,9 @@ firebase deploy --only hosting
 - **Native binding error:** remove `node_modules` & `package-lock.json`, install with a supported Node.js version, then retry.
 - **Auth issues:** confirm Firebase project IDs and add local origin to Firebase Auth authorised domains.
 - **Socket connection fails:** verify the agent URL is reachable over HTTPS and CORS allows the frontend origin.
+
+## License
+
+Copyright (C) 2025-2026 HeySalad Inc.
+
+Licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only). See [LICENSE](LICENSE) and [NOTICE](NOTICE). If you run a modified version of this software to provide a network service, the AGPL requires you to offer its users the corresponding source code. Versions published before this change remain under their previous licence.
